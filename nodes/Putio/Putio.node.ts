@@ -239,9 +239,13 @@ export class Putio implements INodeType {
 					const folderId = this.getNodeParameter('folderId', i) as string;
 					console.log('Put.io List Files - Folder ID:', folderId);
 					
-					const response = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/list`, {
-						parent_id: folderId,
-					});
+					const response = await putioApiRequest.call(
+						this,
+						'GET' as IHttpRequestMethods,
+						'/files/list',
+						{}, // body
+						{ parent_id: folderId } // query parameters
+					);
 
 					console.log('Put.io List Files - Raw API Response:', JSON.stringify(response, null, 2));
 
