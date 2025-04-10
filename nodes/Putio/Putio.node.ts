@@ -19,7 +19,7 @@ export class Putio implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Put.io',
 		name: 'putio',
-		icon: 'file:../../icons/putio.svg',
+		icon: 'file:putio.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
@@ -241,17 +241,22 @@ export class Putio implements INodeType {
 						parent_id: folderId,
 					});
 
-					// Separate files and folders
-					const files = response.files.filter((item: IDataObject) => item.file_type !== 'FOLDER');
-					const folders = response.files.filter((item: IDataObject) => item.file_type === 'FOLDER');
+					// Ensure we're working with the files array from the response
+					const filesArray = response.files || [];
 
-					// Return both arrays in a single object
+					// Separate files and folders
+					const files = filesArray.filter((item: IDataObject) => item.file_type !== 'FOLDER');
+					const folders = filesArray.filter((item: IDataObject) => item.file_type === 'FOLDER');
+
+					// Include parent folder information and status
 					responseData = {
 						files,
 						folders,
 						total_files: files.length,
 						total_folders: folders.length,
-						parent_id: folderId,
+						parent: response.parent,
+						status: response.status,
+						total: response.total,
 					};
 				} else if (operation === 'getFile' || operation === 'downloadFile') {
 					const selectionMethod = this.getNodeParameter('selectionMethod', i) as string;
