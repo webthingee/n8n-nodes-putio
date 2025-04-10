@@ -45,8 +45,8 @@ export class Putio implements INodeType {
 					{
 						name: 'List Files',
 						value: 'listFiles',
-						description: 'List files in a folder',
-						action: 'List files in a folder',
+						description: 'List files and folders',
+						action: 'List files and folders',
 					},
 					{
 						name: 'Get File',
@@ -90,6 +90,32 @@ export class Putio implements INodeType {
 				},
 			},
 			{
+				displayName: 'Selection Method',
+				name: 'selectionMethod',
+				type: 'options',
+				options: [
+					{
+						name: 'File ID',
+						value: 'id',
+						description: 'Select file using its ID',
+					},
+					{
+						name: 'File Path',
+						value: 'path',
+						description: 'Select file using its path',
+					},
+				],
+				default: 'id',
+				displayOptions: {
+					show: {
+						operation: [
+							'getFile',
+							'downloadFile',
+						],
+					},
+				},
+			},
+			{
 				displayName: 'File ID',
 				name: 'fileId',
 				type: 'string',
@@ -100,6 +126,28 @@ export class Putio implements INodeType {
 						operation: [
 							'getFile',
 							'downloadFile',
+						],
+						selectionMethod: [
+							'id',
+						],
+					},
+				},
+			},
+			{
+				displayName: 'File Path',
+				name: 'filePath',
+				type: 'string',
+				default: '',
+				placeholder: '/folder/subfolder/file.txt',
+				description: 'The full path to the file (e.g., /folder/subfolder/file.txt)',
+				displayOptions: {
+					show: {
+						operation: [
+							'getFile',
+							'downloadFile',
+						],
+						selectionMethod: [
+							'path',
 						],
 					},
 				},
@@ -189,15 +237,54 @@ export class Putio implements INodeType {
 			try {
 				if (operation === 'listFiles') {
 					const folderId = this.getNodeParameter('folderId', i) as string;
-					responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/list`, {
+					const response = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/list`, {
 						parent_id: folderId,
 					});
-				} else if (operation === 'getFile') {
-					const fileId = this.getNodeParameter('fileId', i) as string;
-					responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}`);
-				} else if (operation === 'downloadFile') {
-					const fileId = this.getNodeParameter('fileId', i) as string;
-					responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}/download`);
+
+					// Separate files and folders
+					const files = response.files.filter((item: IDataObject) => item.file_type !== 'FOLDER');
+					const folders = response.files.filter((item: IDataObject) => item.file_type === 'FOLDER');
+
+					// Return both arrays in a single object
+					responseData = {
+						files,
+						folders,
+						total_files: files.length,
+						total_folders: folders.length,
+						parent_id: folderId,
+					};
+				} else if (operation === 'getFile' || operation === 'downloadFile') {
+					const selectionMethod = this.getNodeParameter('selectionMethod', i) as string;
+					let fileId: string;
+
+					if (selectionMethod === 'id') {
+						fileId = this.getNodeParameter('fileId', i) as string;
+					} else {
+						// Get file by path
+						const filePath = this.getNodeParameter('filePath', i) as string;
+						const searchResponse = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, '/files/search', {
+							query: filePath,
+							per_page: 1,
+						});
+
+						if (!searchResponse.files || !searchResponse.files.length) {
+							throw new NodeOperationError(this.getNode(), `File not found at path: ${filePath}`);
+						}
+
+						// Find exact path match
+						const exactMatch = searchResponse.files.find((file: IDataObject) => file.full_path === filePath);
+						if (!exactMatch) {
+							throw new NodeOperationError(this.getNode(), `File not found at exact path: ${filePath}`);
+						}
+
+						fileId = exactMatch.id as string;
+					}
+
+					if (operation === 'getFile') {
+						responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}`);
+					} else {
+						responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}/download`);
+					}
 				} else if (operation === 'createFolder') {
 					const folderName = this.getNodeParameter('folderName', i) as string;
 					const parentFolderId = this.getNodeParameter('parentFolderId', i) as string;
