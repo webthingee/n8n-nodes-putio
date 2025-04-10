@@ -330,7 +330,7 @@ export class Putio implements INodeType {
 
 						// Get the download URL
 						console.log('Getting download URL for file ID:', fileId);
-						const downloadResponse = await putioApiRequest.call(
+						const downloadUrl = await putioApiRequest.call(
 							this,
 							'GET' as IHttpRequestMethods,
 							`/files/${fileId}/download`,
@@ -338,21 +338,15 @@ export class Putio implements INodeType {
 							{},
 							undefined,
 							{
-								json: false,
 								resolveWithFullResponse: true,
 								followRedirect: false,
 							}
 						);
-						console.log('Download URL Response:', downloadResponse);
+						console.log('Download URL:', downloadUrl);
 
-						// Get the download URL from the location header
-						const downloadUrl = downloadResponse.headers?.location;
 						if (!downloadUrl) {
-							console.log('No redirect URL found in headers:', downloadResponse.headers);
 							throw new NodeOperationError(this.getNode(), 'Failed to get download URL from Put.io');
 						}
-
-						console.log('Download URL obtained:', downloadUrl);
 
 						// Download the file using n8n's request helper
 						const response = await this.helpers.request({
@@ -418,7 +412,7 @@ export class Putio implements INodeType {
 				}
 
 				if (Array.isArray(responseData)) {
-					returnData.push.apply(returnData, responseData as IDataObject[]);
+					returnData.push(...responseData as IDataObject[]);
 				} else {
 					returnData.push(responseData as IDataObject);
 				}
