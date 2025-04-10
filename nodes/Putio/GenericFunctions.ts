@@ -9,10 +9,6 @@ import {
 } from 'n8n-workflow';
 
 import {
-	OptionsWithUri,
-} from 'request';
-
-import {
 	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	INodeCredentialTestResult,
@@ -33,10 +29,11 @@ export async function putioApiRequest(
 		qs: query,
 		body,
 		json: true,
+		returnFullResponse: true,
 	};
 
 	if (formData) {
-		options.formData = formData;
+		options.form = formData;
 		options.json = false;
 	}
 
@@ -47,16 +44,25 @@ export async function putioApiRequest(
 	try {
 		const response = await this.helpers.requestWithAuthentication.call(this, 'putioApi', options);
 
-		// If this is a download request and we get a 302, return the redirect URL
-		if (endpoint.includes('/download') && option.resolveWithFullResponse && response.statusCode === 302) {
-			return response.headers.location;
+		// Handle download URL requests
+		if (endpoint.includes('/download')) {
+			if (response.headers?.location) {
+				return response.headers.location;
+			}
+			// If we get HTML with a redirect URL
+			const urlMatch = response.body?.toString().match(/href="([^"]+)"/);
+			if (urlMatch) {
+				return urlMatch[1].replace(/&amp;/g, '&');
+			}
 		}
 
-		return response;
+		return response.body;
 	} catch (error) {
-		// If this is a download request and we get a 302 in the error
+		// Handle redirect in error case
 		if (endpoint.includes('/download') && error.statusCode === 302) {
-			// Extract the download URL from the HTML response
+			if (error.response?.headers?.location) {
+				return error.response.headers.location;
+			}
 			const urlMatch = error.message.match(/href="([^"]+)"/);
 			if (urlMatch) {
 				return urlMatch[1].replace(/&amp;/g, '&');

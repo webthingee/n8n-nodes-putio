@@ -333,18 +333,11 @@ export class Putio implements INodeType {
 						const downloadUrl = await putioApiRequest.call(
 							this,
 							'GET' as IHttpRequestMethods,
-							`/files/${fileId}/download`,
-							{},
-							{},
-							undefined,
-							{
-								resolveWithFullResponse: true,
-								followRedirect: false,
-							}
+							`/files/${fileId}/download`
 						);
 						console.log('Download URL:', downloadUrl);
 
-						if (!downloadUrl) {
+						if (!downloadUrl || typeof downloadUrl !== 'string') {
 							throw new NodeOperationError(this.getNode(), 'Failed to get download URL from Put.io');
 						}
 
@@ -353,8 +346,6 @@ export class Putio implements INodeType {
 							method: 'GET',
 							url: downloadUrl,
 							encoding: null,
-							resolveWithFullResponse: true,
-							followRedirect: true,
 						});
 
 						// Add the binary data
@@ -366,9 +357,9 @@ export class Putio implements INodeType {
 							},
 							binary: {
 								[binaryProperty]: await this.helpers.prepareBinaryData(
-									response.body,
+									response,
 									fileDetails.file.name,
-									response.headers['content-type'],
+									'application/octet-stream',
 								),
 							},
 						};
