@@ -1,14 +1,10 @@
 import {
 	IExecuteFunctions,
-} from 'n8n-core';
-
-import {
-	IDataObject,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-	IHttpRequestMethods,
 	NodeOperationError,
+	IDataObject,
 } from 'n8n-workflow';
 
 import {
@@ -19,7 +15,7 @@ export class Putio implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Put.io',
 		name: 'putio',
-		icon: 'file:../../icons/putio.svg',
+		icon: 'file:putio.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
@@ -45,20 +41,8 @@ export class Putio implements INodeType {
 					{
 						name: 'List Files',
 						value: 'listFiles',
-						description: 'List files and folders',
-						action: 'List files and folders',
-					},
-					{
-						name: 'Get File',
-						value: 'getFile',
-						description: 'Get file details',
-						action: 'Get file details',
-					},
-					{
-						name: 'Download File',
-						value: 'downloadFile',
-						description: 'Download a file',
-						action: 'Download a file',
+						description: 'List files in a folder',
+						action: 'List files in a folder',
 					},
 					{
 						name: 'Create Folder',
@@ -69,8 +53,14 @@ export class Putio implements INodeType {
 					{
 						name: 'Upload File',
 						value: 'uploadFile',
-						description: 'Upload a file to Put.io',
+						description: 'Upload a file',
 						action: 'Upload a file',
+					},
+					{
+						name: 'Get File',
+						value: 'getFile',
+						description: 'Get file details or download URL',
+						action: 'Get file details or download URL',
 					},
 				],
 				default: 'listFiles',
@@ -78,9 +68,8 @@ export class Putio implements INodeType {
 			{
 				displayName: 'Folder ID',
 				name: 'folderId',
-				type: 'number',
-				default: 0,
-				description: 'The ID of the folder to list files from (use 0 for root directory)',
+				type: 'string',
+				default: '0',
 				displayOptions: {
 					show: {
 						operation: [
@@ -88,76 +77,13 @@ export class Putio implements INodeType {
 						],
 					},
 				},
-			},
-			{
-				displayName: 'Selection Method',
-				name: 'selectionMethod',
-				type: 'options',
-				options: [
-					{
-						name: 'File ID',
-						value: 'id',
-						description: 'Select file using its ID',
-					},
-					{
-						name: 'File Path',
-						value: 'path',
-						description: 'Select file using its path',
-					},
-				],
-				default: 'id',
-				displayOptions: {
-					show: {
-						operation: [
-							'getFile',
-							'downloadFile',
-						],
-					},
-				},
-			},
-			{
-				displayName: 'File ID',
-				name: 'fileId',
-				type: 'string',
-				default: '',
-				description: 'The ID of the file to get or download',
-				displayOptions: {
-					show: {
-						operation: [
-							'getFile',
-							'downloadFile',
-						],
-						selectionMethod: [
-							'id',
-						],
-					},
-				},
-			},
-			{
-				displayName: 'File Path',
-				name: 'filePath',
-				type: 'string',
-				default: '',
-				placeholder: '/folder/subfolder/file.txt',
-				description: 'The full path to the file (e.g., /folder/subfolder/file.txt)',
-				displayOptions: {
-					show: {
-						operation: [
-							'getFile',
-							'downloadFile',
-						],
-						selectionMethod: [
-							'path',
-						],
-					},
-				},
+				description: 'ID of the folder to list files from',
 			},
 			{
 				displayName: 'Folder Name',
 				name: 'folderName',
 				type: 'string',
 				default: '',
-				description: 'The name of the folder to create',
 				displayOptions: {
 					show: {
 						operation: [
@@ -165,13 +91,13 @@ export class Putio implements INodeType {
 						],
 					},
 				},
+				description: 'Name of the folder to create',
 			},
 			{
 				displayName: 'Parent Folder ID',
 				name: 'parentFolderId',
 				type: 'string',
 				default: '0',
-				description: 'The ID of the parent folder where the new folder will be created',
 				displayOptions: {
 					show: {
 						operation: [
@@ -179,13 +105,41 @@ export class Putio implements INodeType {
 						],
 					},
 				},
+				description: 'ID of the parent folder',
+			},
+			{
+				displayName: 'File Path',
+				name: 'filePath',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						operation: [
+							'getFile',
+						],
+					},
+				},
+				description: 'Path of the file to get',
+			},
+			{
+				displayName: 'File ID',
+				name: 'fileId',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						operation: [
+							'getFile',
+						],
+					},
+				},
+				description: 'ID of the file to get',
 			},
 			{
 				displayName: 'Binary Property',
 				name: 'binaryPropertyName',
 				type: 'string',
 				default: 'data',
-				description: 'Name of the binary property which contains the data for the file to be uploaded',
 				displayOptions: {
 					show: {
 						operation: [
@@ -193,13 +147,13 @@ export class Putio implements INodeType {
 						],
 					},
 				},
+				description: 'Name of the binary property which contains the file data to be uploaded',
 			},
 			{
 				displayName: 'File Name',
 				name: 'fileName',
 				type: 'string',
 				default: '',
-				description: 'Name of the file to be uploaded',
 				displayOptions: {
 					show: {
 						operation: [
@@ -207,13 +161,13 @@ export class Putio implements INodeType {
 						],
 					},
 				},
+				description: 'Name of the file to be uploaded',
 			},
 			{
 				displayName: 'Parent Folder ID',
-				name: 'uploadParentFolderId',
+				name: 'parentFolderId',
 				type: 'string',
 				default: '0',
-				description: 'The ID of the parent folder where the file will be uploaded',
 				displayOptions: {
 					show: {
 						operation: [
@@ -221,6 +175,7 @@ export class Putio implements INodeType {
 						],
 					},
 				},
+				description: 'ID of the parent folder',
 			},
 		],
 	};
@@ -228,170 +183,36 @@ export class Putio implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: IDataObject[] = [];
-		const length = items.length;
-		let responseData;
-
 		const operation = this.getNodeParameter('operation', 0) as string;
 
-		for (let i = 0; i < length; i++) {
+		for (let i = 0; i < items.length; i++) {
 			try {
 				if (operation === 'listFiles') {
 					const folderId = this.getNodeParameter('folderId', i) as string;
-					console.log('Put.io List Files - Folder ID:', folderId);
-					
-					// Convert folderId to a number to ensure proper type
-					const parentId = parseInt(folderId, 10);
-					if (isNaN(parentId)) {
-						throw new NodeOperationError(this.getNode(), 'Invalid folder ID: must be a number');
-					}
-
-					const queryParams = {
-						parent_id: parentId,
-					};
-
-					console.log('Put.io List Files - Query Parameters:', queryParams);
-					
-					const response = await putioApiRequest.call(
-						this,
-						'GET' as IHttpRequestMethods,
-						'/files/list',
-						{},
-						queryParams
-					);
-
-					console.log('Put.io List Files - Raw API Response:', JSON.stringify(response, null, 2));
-
-					if (!response || !response.files) {
-						console.log('Put.io List Files - Invalid Response:', response);
-						throw new NodeOperationError(this.getNode(), 'Invalid response from Put.io API');
-					}
-
-					// Separate files and folders
-					const filesArray = response.files || [];
-					
-					// Helper function to reorder fields
-					const reorderFields = (item: IDataObject) => {
-						const { id, name, ...rest } = item;
-						return { id, name, ...rest };
-					};
-
-					const files = filesArray
-						.filter((item: IDataObject) => item.file_type !== 'FOLDER')
-						.map(reorderFields);
-					
-					const folders = filesArray
-						.filter((item: IDataObject) => item.file_type === 'FOLDER')
-						.map(reorderFields);
-
-					// Return the structured response
-					responseData = {
-						files,
-						folders,
-						total_files: files.length,
-						total_folders: folders.length,
-						parent: response.parent ? reorderFields(response.parent) : response.parent,
-						status: response.status,
-					};
-				} else if (operation === 'getFile' || operation === 'downloadFile') {
-					const selectionMethod = this.getNodeParameter('selectionMethod', i) as string;
-					let fileId: string;
-
-					if (selectionMethod === 'id') {
-						fileId = this.getNodeParameter('fileId', i) as string;
-					} else {
-						// Get file by path
-						const filePath = this.getNodeParameter('filePath', i) as string;
-						const searchResponse = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, '/files/search', {
-							query: filePath,
-							per_page: 1,
-						});
-
-						if (!searchResponse.files || !searchResponse.files.length) {
-							throw new NodeOperationError(this.getNode(), `File not found at path: ${filePath}`);
-						}
-
-						// Find exact path match
-						const exactMatch = searchResponse.files.find((file: IDataObject) => file.full_path === filePath);
-						if (!exactMatch) {
-							throw new NodeOperationError(this.getNode(), `File not found at exact path: ${filePath}`);
-						}
-
-						fileId = exactMatch.id as string;
-					}
-
-					if (operation === 'getFile') {
-						responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}`);
-					} else {
-						// First get the file details to get the name
-						const fileDetails = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}`);
-						if (!fileDetails || !fileDetails.file) {
-							throw new NodeOperationError(this.getNode(), `File with ID ${fileId} not found`);
-						}
-
-						// Get the download URL
-						console.log('Getting download URL for file ID:', fileId);
-						const downloadUrl = await putioApiRequest.call(
-							this,
-							'GET' as IHttpRequestMethods,
-							`/files/${fileId}/download`
-						);
-						console.log('Download URL:', downloadUrl);
-
-						if (!downloadUrl || typeof downloadUrl !== 'string') {
-							throw new NodeOperationError(this.getNode(), 'Failed to get download URL from Put.io');
-						}
-
-						// Download the file using n8n's request helper
-						const response = await this.helpers.request({
-							method: 'GET',
-							url: downloadUrl,
-							encoding: null,
-						});
-
-						// Add the binary data
-						const binaryProperty = 'data';
-						const newItem: INodeExecutionData = {
-							json: {
-								...fileDetails.file,
-								download_url: downloadUrl,
-							},
-							binary: {
-								[binaryProperty]: await this.helpers.prepareBinaryData(
-									response,
-									fileDetails.file.name,
-									'application/octet-stream',
-								),
-							},
-						};
-
-						responseData = newItem;
-					}
+					const response = await putioApiRequest.call(this, 'GET', '/files/list', {}, { parent_id: folderId });
+					returnData.push(response);
 				} else if (operation === 'createFolder') {
 					const folderName = this.getNodeParameter('folderName', i) as string;
 					const parentFolderId = this.getNodeParameter('parentFolderId', i) as string;
-					responseData = await putioApiRequest.call(this, 'POST' as IHttpRequestMethods, `/files/create-folder`, {
-						name: folderName,
-						parent_id: parentFolderId,
-					});
+					const response = await putioApiRequest.call(this, 'POST', '/files/create-folder', {}, { name: folderName, parent_id: parentFolderId });
+					returnData.push(response);
 				} else if (operation === 'uploadFile') {
 					const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i) as string;
 					const fileName = this.getNodeParameter('fileName', i) as string;
-					const parentFolderId = this.getNodeParameter('uploadParentFolderId', i) as string;
+					const parentFolderId = this.getNodeParameter('parentFolderId', i) as string;
 
 					if (items[i].binary === undefined) {
-						throw new Error('No binary data exists on item!');
+						throw new NodeOperationError(this.getNode(), 'No binary data exists on item!');
 					}
 
 					if (items[i].binary[binaryPropertyName] === undefined) {
-						throw new Error(`No binary data property "${binaryPropertyName}" does not exists on item!`);
+						throw new NodeOperationError(this.getNode(), `No binary data property "${binaryPropertyName}" does not exists on item!`);
 					}
 
 					const binaryData = items[i].binary[binaryPropertyName];
-					const binaryDataBuffer = Buffer.from(binaryData.data, 'base64');
-
 					const formData = {
 						file: {
-							value: binaryDataBuffer,
+							value: Buffer.from(binaryData.data, 'base64'),
 							options: {
 								filename: fileName,
 							},
@@ -399,13 +220,27 @@ export class Putio implements INodeType {
 						parent_id: parentFolderId,
 					};
 
-					responseData = await putioApiRequest.call(this, 'POST' as IHttpRequestMethods, '/files/upload', {}, {}, formData);
-				}
+					const response = await putioApiRequest.call(this, 'POST', '/files/upload', {}, {}, formData);
+					returnData.push(response);
+				} else if (operation === 'getFile') {
+					const filePath = this.getNodeParameter('filePath', i) as string;
+					const fileId = this.getNodeParameter('fileId', i) as string;
 
-				if (Array.isArray(responseData)) {
-					returnData.push(...responseData as IDataObject[]);
-				} else {
-					returnData.push(responseData as IDataObject);
+					if (filePath) {
+						const response = await putioApiRequest.call(this, 'GET', '/files/list', {}, { path: filePath });
+						if (!response.files || response.files.length === 0) {
+							throw new NodeOperationError(this.getNode(), `File not found at path: ${filePath}`);
+						}
+						returnData.push(response.files[0]);
+					} else if (fileId) {
+						const response = await putioApiRequest.call(this, 'GET', `/files/${fileId}`);
+						if (!response.file) {
+							throw new NodeOperationError(this.getNode(), `File with ID ${fileId} not found`);
+						}
+						returnData.push(response.file);
+					} else {
+						throw new NodeOperationError(this.getNode(), 'Either file path or file ID must be provided');
+					}
 				}
 			} catch (error) {
 				if (this.continueOnFail()) {

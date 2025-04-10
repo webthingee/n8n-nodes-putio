@@ -6,9 +6,6 @@ import {
 	NodeApiError,
 	IHttpRequestOptions,
 	IHttpRequestMethods,
-} from 'n8n-workflow';
-
-import {
 	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	INodeCredentialTestResult,
@@ -23,7 +20,7 @@ export async function putioApiRequest(
 	formData?: IDataObject,
 	option: IDataObject = {},
 ) {
-	const options: IDataObject = {
+	const options: IHttpRequestOptions = {
 		method,
 		url: `https://api.put.io/v2${endpoint}`,
 		qs: query,
@@ -33,8 +30,11 @@ export async function putioApiRequest(
 	};
 
 	if (formData) {
-		options.form = formData;
+		options.body = formData;
 		options.json = false;
+		options.headers = {
+			'Content-Type': 'multipart/form-data',
+		};
 	}
 
 	if (Object.keys(option).length !== 0) {
@@ -79,15 +79,12 @@ export async function validateCredentials(
 ): Promise<INodeCredentialTestResult> {
 	try {
 		const options: IHttpRequestOptions = {
-			headers: {
-				'Authorization': `Bearer ${decryptedCredentials.accessToken}`,
-			},
 			method: 'GET',
 			url: 'https://api.put.io/v2/account/info',
 			json: true,
 		};
 
-		await this.helpers.request(options);
+		await this.helpers.requestWithAuthentication.call(this, 'putioApi', options);
 		return {
 			status: 'OK',
 			message: 'Connection successful!',
