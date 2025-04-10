@@ -127,7 +127,7 @@ export class Putio implements INodeType {
 							request: {
 								method: 'POST',
 								url: '=/files/upload',
-								formData: {
+								body: {
 									file: '={{$parameter.file}}',
 									parent_id: '={{$parameter.parentId}}',
 								},

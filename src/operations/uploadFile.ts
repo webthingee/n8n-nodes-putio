@@ -7,7 +7,7 @@ export async function uploadFile(this: IExecuteFunctions, itemIndex: number): Pr
 	const response = await this.helpers.requestWithAuthentication.call(this, 'putioApi', {
 		method: 'POST',
 		url: 'https://api.put.io/v2/files/upload',
-		formData: {
+		body: {
 			file,
 			parent_id: parentId,
 		},
