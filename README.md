@@ -1,5 +1,9 @@
 # n8n-nodes-putio
 
+[![npm version](https://badge.fury.io/js/n8n-nodes-putio.svg)](https://badge.fury.io/js/n8n-nodes-putio)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![n8n Community Node](https://img.shields.io/badge/n8n-Community%20Node-green)](https://n8n.io)
+
 This is an n8n community node for Put.io.
 
 [Put.io](https://put.io/) is a cloud storage service that allows you to download and manage files.
@@ -60,4 +64,4 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ## License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-putio/blob/master/LICENSE.md) 
+[MIT](https://github.com/webthingee/n8n-nodes-putio/blob/master/LICENSE.md) 
