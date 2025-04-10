@@ -1,4 +1,4 @@
-const gulp = require('gulp');
+import gulp from 'gulp';
 
 gulp.task('build:icons', function() {
 	return gulp.src('icons/*.svg')
