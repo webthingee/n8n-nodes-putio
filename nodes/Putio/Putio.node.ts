@@ -250,26 +250,8 @@ export class Putio implements INodeType {
 						throw new NodeOperationError(this.getNode(), 'Invalid response from Put.io API');
 					}
 
-					const filesArray = response.files;
-					console.log('Put.io List Files - Files Array:', JSON.stringify(filesArray, null, 2));
-					
-					// Separate files and folders
-					const files = filesArray.filter((item: IDataObject) => item.file_type !== 'FOLDER');
-					const folders = filesArray.filter((item: IDataObject) => item.file_type === 'FOLDER');
-
-					console.log('Put.io List Files - Separated Files:', JSON.stringify(files, null, 2));
-					console.log('Put.io List Files - Separated Folders:', JSON.stringify(folders, null, 2));
-
-					// Return the complete response structure
-					responseData = {
-						files,
-						folders,
-						total_files: files.length,
-						total_folders: folders.length,
-						parent: response.parent,
-						status: response.status,
-						total: response.total,
-					};
+					// Return the response directly
+					responseData = response;
 				} else if (operation === 'getFile' || operation === 'downloadFile') {
 					const selectionMethod = this.getNodeParameter('selectionMethod', i) as string;
 					let fileId: string;
