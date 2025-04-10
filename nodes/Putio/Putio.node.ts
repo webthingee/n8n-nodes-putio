@@ -266,8 +266,32 @@ export class Putio implements INodeType {
 						throw new NodeOperationError(this.getNode(), 'Invalid response from Put.io API');
 					}
 
-					// Return the response directly
-					responseData = response;
+					// Separate files and folders
+					const filesArray = response.files || [];
+					
+					// Helper function to reorder fields
+					const reorderFields = (item: IDataObject) => {
+						const { id, name, ...rest } = item;
+						return { id, name, ...rest };
+					};
+
+					const files = filesArray
+						.filter((item: IDataObject) => item.file_type !== 'FOLDER')
+						.map(reorderFields);
+					
+					const folders = filesArray
+						.filter((item: IDataObject) => item.file_type === 'FOLDER')
+						.map(reorderFields);
+
+					// Return the structured response
+					responseData = {
+						files,
+						folders,
+						total_files: files.length,
+						total_folders: folders.length,
+						parent: response.parent ? reorderFields(response.parent) : response.parent,
+						status: response.status,
+					};
 				} else if (operation === 'getFile' || operation === 'downloadFile') {
 					const selectionMethod = this.getNodeParameter('selectionMethod', i) as string;
 					let fileId: string;
