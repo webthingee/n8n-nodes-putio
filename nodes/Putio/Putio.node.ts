@@ -17,7 +17,7 @@ export class Putio implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Put.io',
 		name: 'putio',
-		icon: 'file:putio.svg',
+		icon: 'file:icons/putio.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
