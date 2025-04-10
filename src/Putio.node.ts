@@ -147,8 +147,8 @@ export class Putio implements INodeType {
 					{
 						name: 'Download File',
 						value: 'downloadFile',
-						description: 'Download a file from Put.io',
-						action: 'Download a file',
+						description: 'Get a download URL for a file from Put.io',
+						action: 'Get a download URL for a file',
 						routing: {
 							request: {
 								method: 'GET',
@@ -159,7 +159,7 @@ export class Putio implements INodeType {
 									{
 										type: 'set',
 										properties: {
-											value: '={{ { "downloadUrl": $response.body } }}',
+											value: '={{ { "downloadUrl": $response } }}',
 										},
 									},
 								],

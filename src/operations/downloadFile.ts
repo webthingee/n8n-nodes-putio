@@ -8,9 +8,12 @@ export async function downloadFile(this: IExecuteFunctions, itemIndex: number): 
 		url: `https://api.put.io/v2/files/${fileId}/download`,
 	});
 
+	// The response will be the redirect URL
 	return [
 		{
-			json: response,
+			json: {
+				downloadUrl: response,
+			},
 		},
 	];
 } 
