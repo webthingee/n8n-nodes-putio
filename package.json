@@ -24,9 +24,9 @@
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
-    "lint": "eslint --config .eslintrc.js ./nodes ./credentials package.json",
-    "lintfix": "eslint --config .eslintrc.js ./nodes ./credentials package.json --fix",
-    "prepublishOnly": "npm run build && npm run lint"
+    "lint": "eslint --config .eslintrc.js 'nodes/**/*.ts' 'credentials/**/*.ts' package.json",
+    "lintfix": "eslint --config .eslintrc.js 'nodes/**/*.ts' 'credentials/**/*.ts' package.json --fix",
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist"
