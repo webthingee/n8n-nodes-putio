@@ -8,11 +8,18 @@ export async function downloadFile(this: IExecuteFunctions, itemIndex: number): 
 		url: `https://api.put.io/v2/files/${fileId}/download`,
 	});
 
-	// The response will be the redirect URL
+	// Extract the download URL from the HTML response
+	const urlMatch = response.match(/href="([^"]+)"/);
+	if (!urlMatch) {
+		throw new Error('Could not find download URL in response');
+	}
+
+	const downloadUrl = urlMatch[1].replace(/&amp;/g, '&');
+
 	return [
 		{
 			json: {
-				downloadUrl: response,
+				downloadUrl,
 			},
 		},
 	];
