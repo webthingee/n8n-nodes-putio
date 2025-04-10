@@ -322,7 +322,43 @@ export class Putio implements INodeType {
 					if (operation === 'getFile') {
 						responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}`);
 					} else {
-						responseData = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}/download`);
+						// First get the file details to get the name
+						const fileDetails = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}`);
+						if (!fileDetails || !fileDetails.file) {
+							throw new NodeOperationError(this.getNode(), `File with ID ${fileId} not found`);
+						}
+
+						// Get the download URL
+						const downloadResponse = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}/download`, {}, {}, undefined);
+						if (!downloadResponse || !downloadResponse.url) {
+							throw new NodeOperationError(this.getNode(), 'Failed to get download URL');
+						}
+
+						// Download the file using n8n's request helper
+						const response = await this.helpers.request({
+							method: 'GET',
+							url: downloadResponse.url,
+							encoding: null,
+							resolveWithFullResponse: true,
+						});
+
+						// Add the binary data
+						const binaryProperty = 'data';
+						const newItem: INodeExecutionData = {
+							json: {
+								...fileDetails.file,
+								download_url: downloadResponse.url,
+							},
+							binary: {
+								[binaryProperty]: await this.helpers.prepareBinaryData(
+									response.body,
+									fileDetails.file.name,
+									response.headers['content-type'],
+								),
+							},
+						};
+
+						responseData = newItem;
 					}
 				} else if (operation === 'createFolder') {
 					const folderName = this.getNodeParameter('folderName', i) as string;
