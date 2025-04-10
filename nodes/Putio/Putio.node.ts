@@ -78,9 +78,9 @@ export class Putio implements INodeType {
 			{
 				displayName: 'Folder ID',
 				name: 'folderId',
-				type: 'string',
-				default: '0',
-				description: 'The ID of the folder to list files from',
+				type: 'number',
+				default: 0,
+				description: 'The ID of the folder to list files from (use 0 for root directory)',
 				displayOptions: {
 					show: {
 						operation: [
@@ -239,12 +239,24 @@ export class Putio implements INodeType {
 					const folderId = this.getNodeParameter('folderId', i) as string;
 					console.log('Put.io List Files - Folder ID:', folderId);
 					
+					// Convert folderId to a number to ensure proper type
+					const parentId = parseInt(folderId, 10);
+					if (isNaN(parentId)) {
+						throw new NodeOperationError(this.getNode(), 'Invalid folder ID: must be a number');
+					}
+
+					const queryParams = {
+						parent_id: parentId,
+					};
+
+					console.log('Put.io List Files - Query Parameters:', queryParams);
+					
 					const response = await putioApiRequest.call(
 						this,
 						'GET' as IHttpRequestMethods,
 						'/files/list',
-						{}, // body
-						{ parent_id: folderId } // query parameters
+						{},
+						queryParams
 					);
 
 					console.log('Put.io List Files - Raw API Response:', JSON.stringify(response, null, 2));

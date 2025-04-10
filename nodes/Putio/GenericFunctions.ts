@@ -33,10 +33,18 @@ export async function putioApiRequest(
 		json: true,
 	};
 
+	console.log('Put.io API Request Options:', {
+		method: options.method,
+		url: options.url,
+		qs: options.qs,
+		headers: options.headers,
+	});
+
 	try {
 		const response = await this.helpers.request(options);
 		return response;
 	} catch (error) {
+		console.log('Put.io API Error:', error);
 		throw new NodeApiError(this.getNode(), error);
 	}
 }
