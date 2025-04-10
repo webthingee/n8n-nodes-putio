@@ -19,7 +19,7 @@ export class Putio implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Put.io',
 		name: 'putio',
-		icon: 'file:icons/putio.svg',
+		icon: 'file:../../icons/putio.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
@@ -237,22 +237,28 @@ export class Putio implements INodeType {
 			try {
 				if (operation === 'listFiles') {
 					const folderId = this.getNodeParameter('folderId', i) as string;
+					console.log('Put.io List Files - Folder ID:', folderId);
+					
 					const response = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/list`, {
 						parent_id: folderId,
 					});
 
+					console.log('Put.io List Files - Raw API Response:', JSON.stringify(response, null, 2));
+
 					if (!response || !response.files) {
+						console.log('Put.io List Files - Invalid Response:', response);
 						throw new NodeOperationError(this.getNode(), 'Invalid response from Put.io API');
 					}
 
-					// Log the raw response for debugging
-					console.log('Put.io API Response:', JSON.stringify(response, null, 2));
-
 					const filesArray = response.files;
+					console.log('Put.io List Files - Files Array:', JSON.stringify(filesArray, null, 2));
 					
 					// Separate files and folders
 					const files = filesArray.filter((item: IDataObject) => item.file_type !== 'FOLDER');
 					const folders = filesArray.filter((item: IDataObject) => item.file_type === 'FOLDER');
+
+					console.log('Put.io List Files - Separated Files:', JSON.stringify(files, null, 2));
+					console.log('Put.io List Files - Separated Folders:', JSON.stringify(folders, null, 2));
 
 					// Return the complete response structure
 					responseData = {
@@ -263,7 +269,6 @@ export class Putio implements INodeType {
 						parent: response.parent,
 						status: response.status,
 						total: response.total,
-						raw_response: response, // Include raw response for debugging
 					};
 				} else if (operation === 'getFile' || operation === 'downloadFile') {
 					const selectionMethod = this.getNodeParameter('selectionMethod', i) as string;
