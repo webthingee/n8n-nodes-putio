@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-putio",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "n8n node for Put.io API integration",
   "keywords": [
     "n8n-community-node-package",
