@@ -329,17 +329,38 @@ export class Putio implements INodeType {
 						}
 
 						// Get the download URL
-						const downloadResponse = await putioApiRequest.call(this, 'GET' as IHttpRequestMethods, `/files/${fileId}/download`, {}, {}, undefined);
-						if (!downloadResponse || !downloadResponse.url) {
-							throw new NodeOperationError(this.getNode(), 'Failed to get download URL');
+						console.log('Getting download URL for file ID:', fileId);
+						const downloadResponse = await putioApiRequest.call(
+							this,
+							'GET' as IHttpRequestMethods,
+							`/files/${fileId}/download`,
+							{},
+							{},
+							undefined,
+							{
+								json: false,
+								resolveWithFullResponse: true,
+								followRedirect: false,
+							}
+						);
+						console.log('Download URL Response:', downloadResponse);
+
+						// Get the download URL from the location header
+						const downloadUrl = downloadResponse.headers?.location;
+						if (!downloadUrl) {
+							console.log('No redirect URL found in headers:', downloadResponse.headers);
+							throw new NodeOperationError(this.getNode(), 'Failed to get download URL from Put.io');
 						}
+
+						console.log('Download URL obtained:', downloadUrl);
 
 						// Download the file using n8n's request helper
 						const response = await this.helpers.request({
 							method: 'GET',
-							url: downloadResponse.url,
+							url: downloadUrl,
 							encoding: null,
 							resolveWithFullResponse: true,
+							followRedirect: true,
 						});
 
 						// Add the binary data
@@ -347,7 +368,7 @@ export class Putio implements INodeType {
 						const newItem: INodeExecutionData = {
 							json: {
 								...fileDetails.file,
-								download_url: downloadResponse.url,
+								download_url: downloadUrl,
 							},
 							binary: {
 								[binaryProperty]: await this.helpers.prepareBinaryData(

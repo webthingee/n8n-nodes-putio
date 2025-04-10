@@ -19,10 +19,11 @@ export async function putioApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 	formData?: IDataObject,
+	options: IDataObject = {},
 ): Promise<any> {
 	const credentials = await this.getCredentials('putioApi') as ICredentialDataDecryptedObject;
 
-	const options: IHttpRequestOptions = {
+	const requestOptions: IHttpRequestOptions = {
 		headers: {
 			'Authorization': `Bearer ${credentials.accessToken}`,
 		},
@@ -31,17 +32,18 @@ export async function putioApiRequest(
 		qs,
 		body: formData || body,
 		json: true,
+		...options,
 	};
 
 	console.log('Put.io API Request Options:', {
-		method: options.method,
-		url: options.url,
-		qs: options.qs,
-		headers: options.headers,
+		method: requestOptions.method,
+		url: requestOptions.url,
+		qs: requestOptions.qs,
+		headers: requestOptions.headers,
 	});
 
 	try {
-		const response = await this.helpers.request(options);
+		const response = await this.helpers.request(requestOptions);
 		return response;
 	} catch (error) {
 		console.log('Put.io API Error:', error);
