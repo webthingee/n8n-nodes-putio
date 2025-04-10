@@ -20,13 +20,12 @@
     "url": "https://github.com/webthingee/n8n-nodes-putio.git"
   },
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
-    "lint": "eslint --config eslint.config.js ./nodes ./credentials package.json",
-    "lintfix": "eslint --config eslint.config.js ./nodes ./credentials package.json --fix",
+    "lint": "eslint --config .eslintrc.js ./nodes ./credentials package.json",
+    "lintfix": "eslint --config .eslintrc.js ./nodes ./credentials package.json --fix",
     "prepublishOnly": "npm run build && npm run lint"
   },
   "files": [
