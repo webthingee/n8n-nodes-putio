@@ -10,14 +10,14 @@
     "torrent"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/seanlange/n8n-nodes-putio",
+  "homepage": "https://github.com/webthingee/n8n-nodes-putio",
   "author": {
     "name": "Sean Lange",
     "email": "sean@seanlange.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/seanlange/n8n-nodes-putio.git"
+    "url": "https://github.com/webthingee/n8n-nodes-putio.git"
   },
   "main": "index.js",
   "scripts": {
